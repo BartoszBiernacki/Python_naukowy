@@ -1,7 +1,7 @@
 import argparse
 from zadanie1 import process_file, process_folder, fake_progressbar
 
-
+# python main.py bible/asv.txt -nw 10 -mwl 3 -f bible
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Word frequency histogram')
     parser.add_argument('fdir')
