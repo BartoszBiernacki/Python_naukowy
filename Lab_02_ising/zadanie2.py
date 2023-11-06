@@ -87,10 +87,13 @@ class Ising:
 
             self.images.append(image)
 
-    def save_images_multi(self):
+    def save_images(self):
 
         def save_image(img, img_prefix, n):
             img.save(f'{img_prefix}{n}.png')
+
+        if folder := os.path.split(self.image_prefix)[0]:
+            Path(folder).mkdir(parents=True, exist_ok=True)
 
         with tqdm(
                 total=len(self.images),
@@ -114,20 +117,6 @@ class Ising:
 
                 for _ in as_completed(futures):
                     pbar.update(1)
-
-    def save_images(self):
-        if folder := os.path.split(self.image_prefix)[0]:
-            Path(folder).mkdir(parents=True, exist_ok=True)
-
-        for step, image in tqdm(
-                iterable=enumerate(self.images),
-                total=len(self.images),
-                desc='Zapisywanie obrazków',
-                ncols=100,
-                mininterval=1. / 60,
-                maxinterval=1. / 10,
-        ):
-            image.save(f'{self.image_prefix}{step}.png')
 
     def save_animation(self):
         if folder := os.path.split(self.animation_filename)[0]:
@@ -167,8 +156,7 @@ class Ising:
             self.make_images()
 
         if self.image_prefix:
-            # self.save_images()
-            self.save_images_multi()
+            self.save_images()
 
         if self.animation_filename:
             self.save_animation()
@@ -179,7 +167,7 @@ class Ising:
 
 if __name__ == '__main__':
     ising = Ising(
-        side_length=1200,
+        side_length=1000,
         spin_up_density=0.3,
         J=1, B=1, beta=0.01,
         n_makro_steps=250,
