@@ -1,68 +1,90 @@
-from functools import wraps
+import numpy as np
+from time import sleep
 
 
-def my_decorator(func=None, x=6, y=8):
-    def decorator(function):
-        @wraps(function)
-        def wrapper(*args, **kwargs):
-            print("Before function call", x, y)
-            function(*args, **kwargs)
-            print("After function call", x, y)
-        return wrapper
-
-    if func is None:
-        return decorator
-    else:
-        return decorator(function=func)
-
-
-@my_decorator(x=1, y=2)
-def my_function1(x, y, z):
-    print("Hello World!", x + y + z)
-
-
-class ObjectDecorator:
-    def __init__(self, func=None, k=0):
-        print('calling __init__')
+class Timer:
+    def __init__(self, func=None, useless_arg=None):
+        self._times = []
 
         def decorator(function):
-            print('calling decorator')
-
             def wrapper(*args, **kwargs):
-                print('calling wrapper')
-                function(*args, **kwargs)
+
+                from time import perf_counter
+                start_time = perf_counter()
+
+                result = function(*args, **kwargs)
+
+                end_time = perf_counter()
+                self._times.append(end_time - start_time)
+
+                return result
+
+            wrapper.exec_times = self.exec_times
+            wrapper.mean_exec_time = self.mean_exec_time
+            wrapper.min_exec_time = self.min_exec_time
+            wrapper.max_exec_time = self.max_exec_time
+            wrapper.std_exec_time = self.std_exec_time
 
             return wrapper
 
         if func is None:
-            print('self.func = decorator')
             self.func = decorator
         else:
             self.func = decorator(function=func)
 
     def __call__(self, *args, **kwargs):
-        print('Calling __call__')
-        self.func(*args, **kwargs)
+        return self.func(*args, **kwargs)
 
+    def exec_times(self) -> list[float]:
+        return self._times
 
-# @ObjectDecorator(k=3)
-def my_function2(a=4):
-    print(f"Calling my_function2")
+    def mean_exec_time(self) -> float:
+        return np.array(self.exec_times()).mean()
+
+    def min_exec_time(self) -> float:
+        return np.array(self.exec_times()).min()
+
+    def max_exec_time(self) -> float:
+        return np.array(self.exec_times()).max()
+
+    def std_exec_time(self) -> float:
+        return np.array(self.exec_times()).std()
 
 
 if __name__ == '__main__':
-    # my_function = my_decorator(x, y, z, e)(my_function)
-    my_function2 = ObjectDecorator(k=5)(my_function2)
+    # Dekorator bez podania argumentów
+    @Timer
+    def my_function0(name='World'):
+        print('Starting calculations ...')
+        sleep(np.random.uniform(0, 2))
+        print(f"Hello {name}!", '\n')
 
-    my_function2(a=4)
+    my_function0(name='Arnold')
+    my_function0(name='Bartek')
+    my_function0(name='Celina')
+    my_function0(name='Dodger')
 
-    print()
+    print(f'execution times: {my_function0.exec_times()}')
+    print(f'mean execution time: {my_function0.mean_exec_time()}')
+    print(f'min execution time: {my_function0.min_exec_time()}')
+    print(f'max execution time: {my_function0.max_exec_time()}')
+    print(f'std execution time: {my_function0.std_exec_time()}', '\n')
 
-    # my_function2()
+    # Dekorator z argumentem
+    @Timer(useless_arg=0)
+    def my_function1(name='World'):
+        print('Starting calculations ...')
+        sleep(np.random.uniform(0, 2))
+        print(f"Hello {name}!", '\n')
 
-    print()
+    my_function1(name='Ela')
+    my_function1(name='Flip')
+    my_function1(name='Grażka')
 
-    # my_function2()
-
+    print(f'execution times: {my_function1.exec_times()}')
+    print(f'mean execution time: {my_function1.mean_exec_time()}')
+    print(f'min execution time: {my_function1.min_exec_time()}')
+    print(f'max execution time: {my_function1.max_exec_time()}')
+    print(f'std execution time: {my_function1.std_exec_time()}')
 
 
