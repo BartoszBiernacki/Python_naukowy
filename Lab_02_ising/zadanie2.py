@@ -188,3 +188,12 @@ if __name__ == '__main__':
     #   unsafe numba =   0.05s; 2450x
     # *************************************************
 
+    # Unsafe numba means using `parallel = True` in `makro_step_MC`
+    # it's unsafe, because in mikrostep1 thread1 can deside to flip spin,
+    # so in mikrostep2 this spin should be flipped, but this process take
+    # some time and if in the meantime thread2 will ask for value of this
+    # spin it may not be updated yet. For grid size like 1000x1000 it's
+    # very unlikely to happen, but still possible. Even if it occurs
+    # simulation result almost will not be affected as it relies on
+    # stohastic process.
+
