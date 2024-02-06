@@ -17,15 +17,17 @@ def update(attr, old, new):
 
 
 fig = figure(width=400, aspect_ratio=1)
+fig.xaxis.axis_label = '$$t$$'
+fig.yaxis.axis_label = 'Fraction of population'
 fig.grid.visible = False
 
 beta_slider = Slider(
-    start=0, end=1, value=0.20, step=0.01,
+    start=0.01, end=1, value=0.20, step=0.01,
     title=r'$$\beta$$', width=200
 )
 
 gamma_slider = Slider(
-    start=0, end=1, value=0.05, step=0.01,
+    start=0.01, end=1, value=0.05, step=0.01,
     title=r'$$\gamma$$', width=200
 )
 
