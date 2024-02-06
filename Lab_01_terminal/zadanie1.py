@@ -47,7 +47,7 @@ def fake_progressbar() -> None:
         'maxinterval': 1/60 * 5,
         'ascii': " 123456789▒",
     }
-    for _ in tqdm(range(1000), **settings):
+    for _ in tqdm(range(400), **settings):
         sleep(0.01)
 
 

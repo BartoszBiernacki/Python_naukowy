@@ -167,10 +167,10 @@ class Ising:
 
 if __name__ == '__main__':
     ising = Ising(
-        side_length=1000,
-        spin_up_density=0.3,
-        J=1, B=1, beta=0.01,
-        n_makro_steps=250,
+        side_length=100,
+        spin_up_density=0.99,
+        J=2, B=1, beta=0.0001,
+        n_makro_steps=800,
         image_prefix='IMG/step',
         animation_filename='anim',
         magnetization_filename='magnetyzacja',

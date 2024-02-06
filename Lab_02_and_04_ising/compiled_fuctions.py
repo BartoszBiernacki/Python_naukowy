@@ -73,6 +73,24 @@ def calculate_hamiltonian_explicitly(
     return hamiltonian / 2
 
 
+@njit("i1[:](i1[:, :], u2, u2)")
+def neighbours_states(arr:  np.ndarray, row: int, col: int) -> np.ndarray:
+
+    rows, cols = arr.shape
+
+    l = arr[row, col-1]
+    r = arr[row, (col+1) % cols]
+    u = arr[row-1, col]
+    d = arr[(row+1) % rows, col]
+
+    return np.array([l, r, u, d])
+
+
+@njit("f8(i1, i1[:], f8, f8)")
+def hamiltonian_part(me, neighbors, B, J):
+    return -J * sum(me*neighbors) - B*me
+
+
 @njit("f8(i1[:, :], u2, u2, f8, f8)", cache=True, fastmath=True)
 def hamiltonian_change_after_mikro_step(
         grid: np.ndarray,
@@ -81,46 +99,18 @@ def hamiltonian_change_after_mikro_step(
         J: float,
         B: float,
 ):
-    nrows, ncols = grid.shape
 
-    me_idx = (row, col)
-    up_idx = (row - 1, col)
-    left_idx = (row, col - 1)
+    original_spin_value = grid[row, col]
+    neighbours = neighbours_states(arr=grid, row=row, col=col)
 
-    if (row < nrows - 1) and (col < ncols - 1):
-        down_idx = (row + 1, col)
-        right_idx = (row, col + 1)
-    elif (row == nrows - 1) and (col < ncols - 1):
-        down_idx = (0, col)
-        right_idx = (row, col + 1)
-    elif (row < nrows - 1) and (col == ncols - 1):
-        down_idx = (row + 1, col)
-        right_idx = (row, 0)
-    else:
-        down_idx = (0, col)
-        right_idx = (row, 0)
-
-    original_spin_value = grid[me_idx]
-
-    old_part = -J * (
-            grid[me_idx] * grid[up_idx] +
-            grid[me_idx] * grid[left_idx] +
-            grid[me_idx] * grid[down_idx] +
-            grid[me_idx] * grid[right_idx]
-    ) - B * grid[me_idx]
+    old_part = hamiltonian_part(
+        me=original_spin_value,
+        neighbors=neighbours, B=B, J=J)
 
     # Spin change
-    grid[me_idx] = ~original_spin_value
-
-    new_part = -J * (
-            grid[me_idx] * grid[up_idx] +
-            grid[me_idx] * grid[left_idx] +
-            grid[me_idx] * grid[down_idx] +
-            grid[me_idx] * grid[right_idx]
-    ) - B * grid[me_idx]
-
-    # Keep original value of spin on grid
-    grid[me_idx] = original_spin_value
+    new_part = hamiltonian_part(
+        me=-original_spin_value,
+        neighbors=neighbours, B=B, J=J)
 
     return -old_part + new_part
 
@@ -142,7 +132,7 @@ def mikro_step_MC(
     )
 
     if np.exp(-beta * hamiltonian_change) < np.random.rand():
-        grid[row, col] = ~grid[row, col]
+        grid[row, col] = -grid[row, col]
 
 
 @njit("void(i1[:, :], f8, f8, f8)", cache=True, fastmath=True, parallel=True)
